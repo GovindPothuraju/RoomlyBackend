@@ -7,47 +7,45 @@ const mongoose = require("mongoose");
 const meetingRouter = express.Router();
 
 meetingRouter.post("/meetings", userAuth, async (req, res) => {
-    try {
+  try {
+    const { meetingName } = req.body;
 
-        const { meetingName } = req.body;
-
-        if (!meetingName || !meetingName.trim()) {
-            return res.status(400).json({
-                success: false,
-                message: "Meeting name is required"
-            });
-        }
-        const generatedMeetingId = generateMeetingId();
-
-        if(!/^[A-Za-z0-9-]+$/.test(meetingId)){
-            throw new Error("Invalid meetingId generated");
-        }
-        const meeting = new Meeting({
-            meetingName: meetingName.trim(),
-            hostId: req.user._id,
-            meetingId: generateMeetingId(),
-            status: "active"
-        });
-
-        await meeting.save();
-
-        res.status(201).json({
-            success: true,
-            message: "Meeting created successfully",
-            data: {
-                meetingId: meeting.meetingId,
-                meetingName: meeting.meetingName,
-            }
-        });
-
-    } catch (err) {
-
-        res.status(500).json({
-            success: false,
-            message: err.message
-        });
-
+    if (!meetingName || !meetingName.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Meeting name is required",
+      });
     }
+
+    const generatedMeetingId = generateMeetingId();
+
+    if (!/^[A-Za-z0-9-]+$/.test(generatedMeetingId)) {
+      throw new Error("Invalid meetingId generated");
+    }
+
+    const meeting = new Meeting({
+      meetingName: meetingName.trim(),
+      hostId: req.user._id,
+      meetingId: generatedMeetingId,
+      status: "active",
+    });
+
+    await meeting.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Meeting created successfully",
+      data: {
+        meetingId: meeting.meetingId,
+        meetingName: meeting.meetingName,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
 });
 
 meetingRouter.get("/meetings/:meetingId/validate",userAuth,async (req, res) => {
