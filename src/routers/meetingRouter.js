@@ -1,12 +1,10 @@
 const express = require("express");
 const Meeting = require("../models/meetingModel");
 const { userAuth } = require("../middlewares/authMiddleware");
-const { generateMeetingId } = require("../utils/meetingIdGeneratoe");
+const { generateMeetingId } = require("../utils/meetingIdGenarator");
 const mongoose = require("mongoose");
 
 const meetingRouter = express.Router();
-
-const meetingId = generateMeetingId();
 
 meetingRouter.post("/meetings", userAuth, async (req, res) => {
     try {
@@ -19,6 +17,8 @@ meetingRouter.post("/meetings", userAuth, async (req, res) => {
                 message: "Meeting name is required"
             });
         }
+        const generatedMeetingId = generateMeetingId();
+
         if(!/^[A-Za-z0-9-]+$/.test(meetingId)){
             throw new Error("Invalid meetingId generated");
         }
@@ -36,7 +36,7 @@ meetingRouter.post("/meetings", userAuth, async (req, res) => {
             message: "Meeting created successfully",
             data: {
                 meetingId: meeting.meetingId,
-                meetingName: meeting.name
+                meetingName: meeting.meetingName,
             }
         });
 
@@ -94,7 +94,6 @@ meetingRouter.get("/meetings/:meetingId",userAuth,async (req, res) => {
                 "hostId",
                 "name email"
             );
-        console.log(meeting);
         if (!meeting) {
             return res.status(404).json({
                 success: false,
