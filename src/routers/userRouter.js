@@ -70,12 +70,14 @@ userRouter.post("/register", async (req, res) => {
         });
 
         // 9. Send response
-        res.status(201).json({
-            success: true,
-            message: "User registered successfully",
-            user
-        });
+        const userObj = user.toObject();
+        delete userObj.password;
 
+        res.status(201).json({
+        success: true,
+        message: "User registered successfully",
+        user: userObj
+        });
     } catch (err) {
         // 10. Handle error
         res.status(500).json({
@@ -134,10 +136,12 @@ userRouter.post("/login", async (req, res) => {
         });
 
         // 7. Send response
+        const userObj = user.toObject();
+        delete userObj.password;
         res.status(200).json({
             success: true,
             message: "Login successful",
-            user
+            user : userObj
         });
 
     } catch (err) {
@@ -153,6 +157,8 @@ userRouter.post("/logout", (req, res) => {
     try{
         res.clearCookie("token",null,{
             httpOnly: true,
+            secure: true,
+            sameSite: "none",
             maxAge: 0
         })
         res.status(200).json({
