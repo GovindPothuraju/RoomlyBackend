@@ -64,6 +64,8 @@ userRouter.post("/register", async (req, res) => {
         // 8. Set cookie
         res.cookie("token", token, {
             httpOnly: true,
+            secure: true,
+            sameSite: "none",
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
 
@@ -122,8 +124,11 @@ userRouter.post("/login", async (req, res) => {
         );
 
         // 6. Set cookie
+        
         res.cookie("token", token, {
             httpOnly: true,
+            secure: true,
+            sameSite: "none",
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
 
