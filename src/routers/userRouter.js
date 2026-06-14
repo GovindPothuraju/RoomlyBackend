@@ -72,7 +72,8 @@ userRouter.post("/register", async (req, res) => {
         // 9. Send response
         res.status(201).json({
             success: true,
-            message: "User registered successfully"
+            message: "User registered successfully",
+            user
         });
 
     } catch (err) {
