@@ -177,4 +177,40 @@ meetingRouter.get("/my-meetings",userAuth,async (req, res) => {
     }
 });
 
+// to join the meeting, validate the meetingId and return meeting details
+meetingRouter.post("/meetings/:meetingId/join",userAuth,async (req, res) => {
+    try {
+      const { meetingId } = req.params;
+      const meeting = await Meeting.findOne({
+        meetingId,
+      });
+
+      if (!meeting) {
+        return res.status(404).json({
+          success: false,
+          message: "Meeting not found",
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        meeting: {
+          meetingId: meeting.meetingId,
+          meetingName: meeting.meetingName,
+        },
+        participant: {
+          _id: req.user._id,
+          name: req.user.name,
+          email: req.user.email,
+        },
+      });
+    } catch (err) {
+      res.status(500).json({
+        success: false,
+        message: err.message,
+      });
+    }
+  }
+);
+
 module.exports = meetingRouter;
