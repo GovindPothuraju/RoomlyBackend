@@ -16,6 +16,7 @@ const initializeSocket = (server) => {
         console.log("User Connected:",socket.id);
 
         socket.on("joinMeeting",({meetingId,participant})=>{
+            console.log("joinMeeting",participant.name,meetingId);
             // 1. Join the Socket.IO room
             socket.join(meetingId);
             // 2. Add participant to the meetingParticipants object
