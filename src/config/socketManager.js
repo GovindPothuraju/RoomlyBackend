@@ -80,6 +80,20 @@ const initializeSocket=(server)=>{
       delete meetingParticipants[meetingId];
     });
 
+    // webrtc 
+    // when a participant sends an offer, forward it to the target participant
+    socket.on("offer",({offer,targetSocketId,senderSocketId,}) => {
+        io.to(targetSocketId).emit("offer",{offer,senderSocketId}
+        );
+      });
+    //anser the offer and send it back to the sender
+    socket.on("answer",({answer,targetSocketId,}) => {
+        io.to(targetSocketId).emit("answer",{answer,senderSocketId: socket.id,});
+    });
+    // when a participant sends an ice candidate, forward it to the target participant
+    socket.on("iceCandidate", ({ candidate, targetSocketId }) => {
+      io.to(targetSocketId).emit("iceCandidate", { candidate , senderSocketId: socket.id,});
+    });
     
   });
 

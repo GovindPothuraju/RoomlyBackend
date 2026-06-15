@@ -18,77 +18,73 @@ POST   /api/meetings
 GET    /api/meetings/:meetingId
 GET    /api/meetings/:meetingId/validate
 PATCH  /api/meetings/:meetingId/end
-```
-
----
-
-## PARTICIPANTS
-
-```http
 POST   /api/meetings/:meetingId/join
-POST   /api/meetings/:meetingId/leave
-GET    /api/meetings/:meetingId/participants
 ```
 
 
-# Phase 2 API Routes
+# RoomLY Phase 2 API Routes
 
-## MEETING
-
-```http
-GET    /api/meetings/:meetingId/stats
-```
-
-Get meeting statistics.
-
----
-
-## PARTICIPANTS
+## Meeting
 
 ```http
-DELETE /api/meetings/:meetingId/participants/:participantId
-```
-
-Remove participant from meeting (Host Only).
-
----
-
-## CHAT
-
-```http
-GET    /api/meetings/:meetingId/messages
-```
-
-Get chat history.
-
----
-
-## SCREEN SHARE
-
-```http
-POST   /api/meetings/:meetingId/screenshare/start
-POST   /api/meetings/:meetingId/screenshare/stop
+POST   /api/v1/meetings
+GET    /api/v1/meetings/:meetingId/validate
+POST   /api/v1/meetings/:meetingId/join
+PATCH  /api/v1/meetings/:meetingId/end
+GET    /api/v1/meetings/:meetingId/stats
 ```
 
 ---
 
-## HOST CONTROLS
+## Participants
 
 ```http
-PATCH  /api/meetings/:meetingId/mute-all
-PATCH  /api/meetings/:meetingId/unmute-all
-
-PATCH  /api/meetings/:meetingId/lock
-PATCH  /api/meetings/:meetingId/unlock
+DELETE /api/v1/meetings/:meetingId/participants/:participantId
 ```
 
 ---
 
-## PARTICIPANT REQUESTS
+## Host Controls
 
 ```http
-POST   /api/meetings/:meetingId/raise-hand
-POST   /api/meetings/:meetingId/lower-hand
+PATCH  /api/v1/meetings/:meetingId/lock
+PATCH  /api/v1/meetings/:meetingId/unlock
 ```
 
 
+``` 
+Phase 1 ✅
+Authentication
+Meetings
+Socket.IO Presence
+Join/Leave
+Host Controls
+
+Phase 2 ✅
+Meeting Room
+Participant List
+End Meeting
+
+Phase 3 🚀
+WebRTC
+Video
+Audio
+Peer Connections
+
+Phase 4
+Chat
+Screen Share
+Raise Hand
+Mute All
+
+Phase 5
+Analytics
+Meeting History
+Attendance
+Recordings
+
+Phase 6
+AI Summary
+Transcription
+Action Items
+```
