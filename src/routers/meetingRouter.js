@@ -189,11 +189,19 @@ meetingRouter.post("/meetings/:meetingId/join",userAuth,async (req, res) => {
         });
       }
 
+      if (meeting.status === "ended") {
+        return res.status(410).json({
+            success: false,
+            message: "Meeting has ended",
+        });
+      }
+
       res.status(200).json({
         success: true,
         meeting: {
           meetingId: meeting.meetingId,
           meetingName: meeting.meetingName,
+          hostId: meeting.hostId,
         },
         participant: {
           _id: req.user._id,

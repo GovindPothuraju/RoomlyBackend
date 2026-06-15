@@ -73,6 +73,15 @@ const initializeSocket=(server)=>{
       console.log(meetingParticipants);
     });
 
+    socket.on("endMeeting",(meetingId) => {
+      io.to(meetingId).emit(
+        "meetingEnded"
+      );
+    });
+
+    socket.on("leaveMeeting", ({ meetingId }) => {
+      socket.leave(meetingId);
+    });
   });
 
   return io;
