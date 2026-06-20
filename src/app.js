@@ -17,7 +17,7 @@ const meetingRouter = require("./routers/meetingRouter");
 
 app.use(cors({
   origin: [
-    "http://localhost:5173",
+    "http://localhost:5174",
     "https://roomly-frontend-delta.vercel.app"
   ],
   credentials: true
