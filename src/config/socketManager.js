@@ -18,67 +18,40 @@ const initializeSocket=(server)=>{
 
     // Join Meeting
     socket.on("joinMeeting",({meetingId,participant})=>{
-
       try{
-
-        if(!meetingId||!participant){
-          return;
-        }
-
+        if(!meetingId||!participant)return;
         socket.join(meetingId);
+        if(!meetingParticipants[meetingId])meetingParticipants[meetingId]=[];
 
-        if(!meetingParticipants[meetingId]){
-          meetingParticipants[meetingId]=[];
-        }
+        const existingParticipants=[...meetingParticipants[meetingId]];
 
-        const existingIndex=
-          meetingParticipants[meetingId].findIndex(
-            user=>user._id===participant._id
-          );
+        const participantData={socketId:socket.id,...participant};
 
-        const participantData={
-          socketId:socket.id,
-          ...participant
-        };
+        const existingIndex=meetingParticipants[meetingId].findIndex(
+          user=>user._id===participant._id
+        );
 
         if(existingIndex!==-1){
-
-          meetingParticipants[meetingId][existingIndex]=
-            participantData;
-
+          meetingParticipants[meetingId][existingIndex]=participantData;
         }else{
-
-          meetingParticipants[meetingId].push(
-            participantData
-          );
-
-          // Notify existing users
-          socket.to(meetingId).emit(
-            "userJoined",
-            participantData
-          );
-
+          meetingParticipants[meetingId].push(participantData);
         }
+
+        socket.emit("existingParticipants",existingParticipants);
+
+        socket.to(meetingId).emit(
+          "userJoined",
+          participantData
+        );
 
         io.to(meetingId).emit(
           "participantsUpdated",
           meetingParticipants[meetingId]
         );
 
-        console.log(
-          "Participants:",
-          meetingParticipants[meetingId]
-        );
-
       }catch(error){
-
-        console.error(
-          "joinMeeting Error:",
-          error
-        );
-
+        console.error("joinMeeting Error:",error);
       }
-
     });
 
     // WebRTC Offer
