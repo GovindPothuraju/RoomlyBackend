@@ -1,4 +1,5 @@
-const { Server }=require("socket.io");
+
+const {Server}=require("socket.io");
 
 const meetingParticipants={};
 
@@ -7,97 +8,262 @@ const initializeSocket=(server)=>{
   const io=new Server(server,{
     cors:{
       origin:process.env.FRONTEND_URL,
-      credentials:true,
-    },
+      credentials:true
+    }
   });
 
   io.on("connection",(socket)=>{
 
     console.log("User Connected:",socket.id);
 
-    socket.on("joinMeeting",({ meetingId,participant })=>{
+    // Join Meeting
+    socket.on("joinMeeting",({meetingId,participant})=>{
 
-      console.log("joinMeeting",participant.name,meetingId);
+      try{
 
-      socket.join(meetingId);
+        if(!meetingId||!participant){
+          return;
+        }
 
-      if(!meetingParticipants[meetingId]){
-        meetingParticipants[meetingId]=[];
-      }
+        socket.join(meetingId);
 
-      const existingIndex=meetingParticipants[meetingId].findIndex(
-        user=>user._id===participant._id
-      );
+        if(!meetingParticipants[meetingId]){
+          meetingParticipants[meetingId]=[];
+        }
 
-      if(existingIndex!==-1){
-        meetingParticipants[meetingId][existingIndex]={
+        const existingIndex=
+          meetingParticipants[meetingId].findIndex(
+            user=>user._id===participant._id
+          );
+
+        const participantData={
           socketId:socket.id,
-          ...participant,
+          ...participant
         };
-      }else{
-        meetingParticipants[meetingId].push({
-          socketId:socket.id,
-          ...participant,
-        });
-      }
 
-      io.to(meetingId).emit(
-        "participantsUpdated",
-        meetingParticipants[meetingId]
-      );
+        if(existingIndex!==-1){
 
-      console.log(meetingParticipants[meetingId]);
-    });
+          meetingParticipants[meetingId][existingIndex]=
+            participantData;
 
-    socket.on("disconnect",()=>{
+        }else{
 
-      console.log("User Disconnected:",socket.id);
+          meetingParticipants[meetingId].push(
+            participantData
+          );
 
-      for(const meetingId in meetingParticipants){
+          // Notify existing users
+          socket.to(meetingId).emit(
+            "userJoined",
+            participantData
+          );
 
-        meetingParticipants[meetingId]=meetingParticipants[meetingId].filter(
-          participant=>participant.socketId!==socket.id
-        );
-
-        if(meetingParticipants[meetingId].length===0){
-          delete meetingParticipants[meetingId];
-          continue;
         }
 
         io.to(meetingId).emit(
           "participantsUpdated",
           meetingParticipants[meetingId]
         );
+
+        console.log(
+          "Participants:",
+          meetingParticipants[meetingId]
+        );
+
+      }catch(error){
+
+        console.error(
+          "joinMeeting Error:",
+          error
+        );
+
       }
 
-      console.log(meetingParticipants);
     });
 
-    socket.on("endMeeting", ({ meetingId }) => {
-      io.to(meetingId).emit(
-        "meetingEnded"
-      );
-      delete meetingParticipants[meetingId];
-    });
+    // WebRTC Offer
+    socket.on("offer",({
+      offer,
+      targetSocketId,
+      senderSocketId
+    })=>{
 
-    // webrtc 
-    // when a participant sends an offer, forward it to the target participant
-    socket.on("offer",({offer,targetSocketId,senderSocketId,}) => {
-        io.to(targetSocketId).emit("offer",{offer,senderSocketId}
+      try{
+
+        if(!offer||!targetSocketId){
+          return;
+        }
+
+        io.to(targetSocketId).emit(
+          "offer",
+          {
+            offer,
+            senderSocketId
+          }
         );
-      });
-    //anser the offer and send it back to the sender
-    socket.on("answer",({answer,targetSocketId,}) => {
-        io.to(targetSocketId).emit("answer",{answer,senderSocketId: socket.id,});
+
+      }catch(error){
+
+        console.error(
+          "Offer Error:",
+          error
+        );
+
+      }
+
     });
-    // when a participant sends an ice candidate, forward it to the target participant
-    socket.on("iceCandidate", ({ candidate, targetSocketId }) => {
-      io.to(targetSocketId).emit("iceCandidate", { candidate , senderSocketId: socket.id,});
+
+    // WebRTC Answer
+    socket.on("answer",({
+      answer,
+      targetSocketId
+    })=>{
+
+      try{
+
+        if(!answer||!targetSocketId){
+          return;
+        }
+
+        io.to(targetSocketId).emit(
+          "answer",
+          {
+            answer,
+            senderSocketId:socket.id
+          }
+        );
+
+      }catch(error){
+
+        console.error(
+          "Answer Error:",
+          error
+        );
+
+      }
+
     });
-    
+
+    // ICE Candidate
+    socket.on("iceCandidate",({
+      candidate,
+      targetSocketId
+    })=>{
+
+      try{
+
+        if(!candidate||!targetSocketId){
+          return;
+        }
+
+        io.to(targetSocketId).emit(
+          "iceCandidate",
+          {
+            candidate,
+            senderSocketId:socket.id
+          }
+        );
+
+      }catch(error){
+
+        console.error(
+          "ICE Error:",
+          error
+        );
+
+      }
+
+    });
+
+    // End Meeting
+    socket.on("endMeeting",({meetingId})=>{
+
+      try{
+
+        io.to(meetingId).emit(
+          "meetingEnded"
+        );
+
+        delete meetingParticipants[meetingId];
+
+      }catch(error){
+
+        console.error(
+          "End Meeting Error:",
+          error
+        );
+
+      }
+
+    });
+
+    // Disconnect
+    socket.on("disconnect",()=>{
+
+      try{
+
+        console.log(
+          "User Disconnected:",
+          socket.id
+        );
+
+        for(const meetingId in meetingParticipants){
+
+          const disconnectedUser=
+            meetingParticipants[meetingId].find(
+              participant=>
+                participant.socketId===socket.id
+            );
+
+          meetingParticipants[meetingId]=
+            meetingParticipants[meetingId].filter(
+              participant=>
+                participant.socketId!==socket.id
+            );
+
+          if(disconnectedUser){
+
+            socket.to(meetingId).emit(
+              "userLeft",
+              {
+                socketId:socket.id
+              }
+            );
+
+          }
+
+          if(
+            meetingParticipants[meetingId].length===0
+          ){
+
+            delete meetingParticipants[meetingId];
+            continue;
+
+          }
+
+          io.to(meetingId).emit(
+            "participantsUpdated",
+            meetingParticipants[meetingId]
+          );
+
+        }
+
+      }catch(error){
+
+        console.error(
+          "Disconnect Error:",
+          error
+        );
+
+      }
+
+    });
+
   });
 
   return io;
+
 };
 
 module.exports=initializeSocket;
+
